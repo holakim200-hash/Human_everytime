@@ -52,6 +52,16 @@ export const UserInfoArea = styled.div`
     text-decoration: none;
     cursor: pointer;
   }
+  .user-name-link {
+    text-decoration: none;
+    color: inherit; /* 부모 색상 따름 */
+    font-weight: bold;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline; /* 마우스 올리면 밑줄 */
+    }
+  }
 `;
 
 // 2. 헤더 아래 전체 영역 Wrapper (Sidebar + Main)
