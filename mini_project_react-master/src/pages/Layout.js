@@ -1,5 +1,5 @@
-import React, { useState, useContext, useEffect } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react"; // useEffect, useState 추가
+import { Outlet, Link, useNavigate } from "react-router-dom";
 import {
   Header,
   LogoContainer,
@@ -11,86 +11,71 @@ import {
   MainContent,
   ContentCard,
 } from "../style/LayoutStyle";
-import { FaHome, FaClipboardList, FaBook, FaRegClock } from "react-icons/fa";
-import { CgProfile } from "react-icons/cg";
-import { UserContext } from "../context/UserStore";
-import AxiosApi from "../api/AxiosApi";
 
 const Layout = () => {
   const navigate = useNavigate();
-  const { loginUser, handleLogout } = useContext(UserContext);
-  const [member, setMember] = useState(null);
+  // ★ 실제 로그인 유저 이름을 담을 상태
+  const [userName, setUserName] = useState("Guest");
 
   useEffect(() => {
-    if (!loginUser) {
-      navigate("/");
-      return;
+    // ★ 시간표 때 썼던 로직 그대로 사용: localStorage에서 유저 정보 가져오기
+    const savedData = localStorage.getItem("loginUser");
+    if (savedData) {
+      const user = JSON.parse(savedData);
+      // 백엔드에서 준 로그인 응답에 'name' 필드가 있다고 가정합니다.
+      setUserName(user.name || "홍길동");
     }
-    const getMember = async () => {
-      try {
-        const rsp = await AxiosApi.getUser(loginUser.userId);
-        if (rsp.data.success) {
-          setMember(rsp.data.data);
-        }
-      } catch (e) {
-        console.log(e);
-      }
-    };
-    getMember();
-  }, [loginUser, navigate]);
+  }, []);
 
-  const onClickLogout = () => {
-    handleLogout();
-    navigate("/");
+  const handleLogout = () => {
+    // ★ 로그아웃 시 localStorage 비우기
+    localStorage.removeItem("loginUser");
+    navigate("/"); // 로그인 화면으로 이동
   };
 
   return (
     <>
-      {/* 1. 상단 헤더 */}
       <Header>
-        <LogoContainer onClick={() => navigate("/home")} style={{ cursor: "pointer" }}>
+        <LogoContainer>
           <span>에브리휴먼타임</span>
         </LogoContainer>
         <UserInfoArea>
-          <span>{member?.name || loginUser?.name}님</span>
-          <span style={{ margin: "0 10px", opacity: 0.5 }}>|</span>
-          <span onClick={onClickLogout} style={{ cursor: "pointer" }}>로그아웃</span>
+          {/* ★ 수정 포인트: 이름을 클릭하면 /mypage로 이동하도록 Link로 감쌉니다. */}
+          <Link to="/member" className="user-name-link">
+            {userName}님
+          </Link>
+          <span> / </span>
+          <Link to="/" onClick={handleLogout}>
+            로그아웃
+          </Link>
         </UserInfoArea>
       </Header>
 
       <Wrapper>
-        {/* 2. 좌측 사이드바 */}
         <Sidebar>
           <UniversityName>휴먼 대학교</UniversityName>
           <MenuList>
             <li>
-              <div onClick={() => navigate("/home")} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                <FaRegClock style={{ marginLeft: "30px", marginRight: "10px" }} />
-                <span>시간표</span>
-              </div>
+              <Link to="/timetable">시간표</Link>
             </li>
             <li>
-              <div onClick={() => navigate("/bookMarket")} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                <FaBook style={{ marginLeft: "30px", marginRight: "10px" }} />
-                <span>중고책 마켓</span>
-              </div>
+              <Link to="/board">게시판</Link>
             </li>
             <li>
-              <div onClick={() => navigate("/boards")} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                <FaClipboardList style={{ marginLeft: "30px", marginRight: "10px" }} />
-                <span>게시판</span>
-              </div>
+              <Link to="/calculator">학점계산기</Link>
             </li>
             <li>
-              <div onClick={() => navigate("/members")} style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                <CgProfile style={{ marginLeft: "30px", marginRight: "10px" }} />
-                <span>회원목록</span>
-              </div>
+              <Link to="/library">열람실 예약</Link>
+            </li>
+            <li>
+              <Link to="/bookmarket">책방</Link>
+            </li>
+            <li>
+              <Link to="/sudoku">스도쿠</Link>
             </li>
           </MenuList>
         </Sidebar>
 
-        {/* 3. 우측 메인 콘텐츠 */}
         <MainContent>
           <ContentCard>
             <Outlet />
